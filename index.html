@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robin Hood Utenze — Campaign Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:        #085e3a;
+      --green-dark:   #054a2c;
+      --green-light:  #cce8d8;
+      --green-faint:  #f0faf5;
+      --text:         #0d1a0f;
+      --text-2:       #4a5568;
+      --text-3:       #718096;
+      --border:       #e2e8f0;
+      --bg:           #f7fafc;
+      --white:        #ffffff;
+      --red:          #e53e3e;
+      --amber:        #d69e2e;
+      --radius:       8px;
+      --shadow:       0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-lg:    0 10px 25px rgba(0,0,0,.12);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    nav {
+      background: var(--green);
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .nav-brand {
+      color: #fff;
+      font-family: 'Times New Roman', serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: .5px;
+    }
+    .nav-brand span { font-weight: 400; font-size: 14px; opacity: .8; margin-left: 4px; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-tag {
+      color: var(--green-light);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .btn-icon {
+      background: rgba(255,255,255,.15);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background .15s;
+    }
+    .btn-icon:hover { background: rgba(255,255,255,.25); }
+
+    .container { max-width: 1300px; margin: 0 auto; padding: 28px 24px; }
+
+    #config-banner {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: #856404;
+    }
+    #config-banner.hidden { display: none; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-card.green { border-top: 3px solid var(--green); }
+    .stat-card.green .stat-value { color: var(--green); }
+    .stat-card.amber { border-top: 3px solid var(--amber); }
+    .stat-card.amber .stat-value { color: var(--amber); }
+    .stat-card.red { border-top: 3px solid var(--red); }
+    .stat-card.red .stat-value { color: var(--red); }
+    .stat-sub { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+
+    .progress-wrap {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--text-2);
+    }
+    .progress-bar-bg {
+      background: var(--border);
+      border-radius: 99px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green-dark), var(--green));
+      border-radius: 99px;
+      transition: width .5s ease;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; }
+    .search-wrap input {
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      background: var(--white);
+      outline: none;
+      transition: border .15s;
+    }
+    .search-wrap input:focus { border-color: var(--green); }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      font-size: 15px;
+    }
+    select.filter-select {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      background: var(--white);
+      cursor: pointer;
+      outline: none;
+    }
+    select.filter-select:focus { border-color: var(--green); }
+    .btn {
+      padding: 9px 18px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-primary:disabled { background: #a0aec0; cursor: not-allowed; }
+    .btn-outline { background: var(--white); color: var(--green); border: 1.5px solid var(--green); }
+    .btn-outline:hover { background: var(--green-faint); }
+
+    .table-wrap {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th {
+      background: var(--bg);
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--green-faint); }
+    td { padding: 11px 14px; color: var(--text); vertical-align: middle; }
+    td.muted { color: var(--text-3); font-size: 13px; }
+    .row-number { color: var(--text-3); font-size: 12px; width: 36px; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-sent    { background: #c6f6d5; color: #22543d; }
+    .badge-pending { background: #fef3cd; color: #744210; }
+    .badge-new     { background: #e9ecef; color: #495057; }
+
+    .send-count { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; }
+    .send-count .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0 0 0;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .last-update { font-size: 12px; color: var(--text-3); }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 28px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .modal p  { font-size: 13px; color: var(--text-2); margin-bottom: 20px; line-height: 1.5; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text-2);
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      outline: none;
+      transition: border .15s;
+    }
+    .form-group input:focus { border-color: var(--green); }
+    .form-hint { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      padding: 14px 20px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      z-index: 2000;
+      box-shadow: var(--shadow-lg);
+      transition: opacity .3s, transform .3s;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { background: var(--green); }
+    #toast.error   { background: var(--red); }
+    #toast.info    { background: #3182ce; }
+
+    .loading-row td { text-align: center; padding: 40px; color: var(--text-3); font-size: 14px; }
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .toolbar { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">ROBIN HOOD <span>utenze</span></div>
+    <div class="nav-right">
+      <span class="nav-tag">Campaign Dashboard</span>
+      <button class="btn-icon" onclick="openSettings()">⚙ Impostazioni</button>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <div id="config-banner">
+      ⚠️ &nbsp;<strong>Configurazione incompleta.</strong>&nbsp;
+      Imposta lo Spreadsheet ID e il Webhook Make.com per iniziare.
+      <button class="btn btn-outline" style="margin-left:auto;padding:5px 14px;font-size:13px;" onclick="openSettings()">
+        Configura ora
+      </button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Contatti Totali</div>
+        <div class="stat-value" id="s-total">—</div>
+        <div class="stat-sub">nel foglio</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Inviati Oggi</div>
+        <div class="stat-value" id="s-today">—</div>
+        <div class="stat-sub">email inviate</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">Totale Inviati</div>
+        <div class="stat-value" id="s-sent">—</div>
+        <div class="stat-sub">su tutti i contatti</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Da Contattare</div>
+        <div class="stat-value" id="s-pending">—</div>
+        <div class="stat-sub">non ancora raggiunti</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span>Avanzamento campagna</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search" placeholder="Cerca per nome, email o categoria..." oninput="renderTable()">
+      </div>
+      <select class="filter-select" id="filter-status" onchange="renderTable()">
+        <option value="">Tutti gli stati</option>
+        <option value="sent">✅ Inviata</option>
+        <option value="pending">🕐 In attesa</option>
+        <option value="new">🔵 Da contattare</option>
+      </select>
+      <button class="btn btn-outline" onclick="loadData()">🔄 Aggiorna</button>
+      <button class="btn btn-primary" id="btn-trigger" onclick="triggerCampaign()" disabled>
+        🚀 Avvia Campagna Make.com
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="row-number">#</th>
+            <th>Nome e Cognome</th>
+            <th>Email</th>
+            <th>Nome (usato nell'email)</th>
+            <th>Categoria</th>
+            <th>Stato</th>
+            <th>Inviati Oggi</th>
+            <th>Totale Inviati</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr class="loading-row">
+            <td colspan="8">Configura il foglio e premi Aggiorna per caricare i dati.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bottom-bar">
+      <span class="last-update" id="last-update">Nessun aggiornamento</span>
+      <span style="font-size:13px;color:var(--text-3);" id="row-count"></span>
+    </div>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay hidden" id="modal-settings">
+    <div class="modal">
+      <h2>⚙ Impostazioni</h2>
+      <p>Inserisci lo Spreadsheet ID di Google e l'URL del Webhook Make.com per connettere il dashboard.</p>
+
+      <div class="form-group">
+        <label>Spreadsheet ID</label>
+        <input type="text" id="input-sheet-id" placeholder="14MKl0HDSTRMtTqNacF3cVyNrmsPLnha3eAhWxrbQNPc">
+        <div class="form-hint">Trovalo nell'URL del foglio: docs.google.com/spreadsheets/d/<strong>[ID]</strong>/edit</div>
+      </div>
+
+      <div class="form-group">
+        <label>Nome Foglio</label>
+        <input type="text" id="input-sheet-name" placeholder="Foglio1">
+        <div class="form-hint">Il nome esatto del tab nel foglio Google (default: Foglio1)</div>
+      </div>
+
+      <div class="form-group">
+        <label>Webhook Make.com URL</label>
+        <input type="text" id="input-webhook" placeholder="https://hook.eu2.make.com/xxxxxxxxxxxxxxxx">
+        <div class="form-hint">
+          In Make.com: aggiungi un modulo <strong>Webhooks → Custom webhook</strong> come primo trigger, copia l'URL qui.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>API Key Make.com <span style="font-weight:400;text-transform:none;letter-spacing:0;">(opzionale)</span></label>
+        <input type="password" id="input-api-key" placeholder="Lascia vuoto se non hai aggiunto API key al webhook">
+        <div class="form-hint">
+          Se hai cliccato <strong>+ Add API key</strong> nel webhook, incollala qui.
+          Verrà inviata nell'header <code style="background:var(--bg);padding:1px 4px;border-radius:3px;">x-make-apikey</code>.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Colonna "Categoria" (lettera)</label>
+        <input type="text" id="input-cat-col" placeholder="G" maxlength="3">
+        <div class="form-hint">Lettera della colonna con la categoria (es. G).</div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeSettings()">Annulla</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Salva e connetti</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay hidden" id="modal-confirm">
+    <div class="modal">
+      <h2>🚀 Avvia Campagna</h2>
+      <p id="confirm-text"></p>
+      <div id="confirm-payload" style="background:var(--bg);border-radius:6px;padding:12px;font-size:12px;font-family:monospace;color:var(--text-2);margin-top:-8px;margin-bottom:4px;overflow:auto;max-height:120px;"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeConfirm()">Annulla</button>
+        <button class="btn btn-primary" id="btn-confirm-send" onclick="confirmTrigger()">Conferma e avvia</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const STORAGE_KEY = 'rhu_config';
+    const DEFAULTS = {
+      sheetId:   '',
+      sheetName: 'Foglio1',
+      webhook:   '',
+      apiKey:    '',
+      catCol:    'G',
+    };
+
+    let cfg = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') };
+    let allRows = [];
+
+    function catIndex() {
+      const letter = (cfg.catCol || 'G').toUpperCase();
+      let n = 0;
+      for (let i = 0; i < letter.length; i++) n = n * 26 + (letter.charCodeAt(i) - 64);
+      return n - 1;
+    }
+
+    function openSettings() {
+      document.getElementById('input-sheet-id').value   = cfg.sheetId;
+      document.getElementById('input-sheet-name').value = cfg.sheetName;
+      document.getElementById('input-webhook').value    = cfg.webhook;
+      document.getElementById('input-api-key').value    = cfg.apiKey;
+      document.getElementById('input-cat-col').value    = cfg.catCol;
+      document.getElementById('modal-settings').classList.remove('hidden');
+    }
+    function closeSettings() { document.getElementById('modal-settings').classList.add('hidden'); }
+
+    function saveSettings() {
+      cfg.sheetId   = document.getElementById('input-sheet-id').value.trim();
+      cfg.sheetName = document.getElementById('input-sheet-name').value.trim() || 'Foglio1';
+      cfg.webhook   = document.getElementById('input-webhook').value.trim();
+      cfg.apiKey    = document.getElementById('input-api-key').value.trim();
+      cfg.catCol    = document.getElementById('input-cat-col').value.trim().toUpperCase() || 'G';
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+      closeSettings();
+      checkConfigBanner();
+      loadData();
+    }
+
+    function checkConfigBanner() {
+      const ok = cfg.sheetId && cfg.webhook;
+      document.getElementById('config-banner').classList.toggle('hidden', !!ok);
+      document.getElementById('btn-trigger').disabled = !cfg.webhook;
+    }
+
+    async function loadData() {
+      if (!cfg.sheetId) { toast('Imposta lo Spreadsheet ID nelle impostazioni.', 'error'); return; }
+      showLoading();
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${cfg.sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(cfg.sheetName)}&headers=1`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        const data = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
+        if (data.status === 'error') throw new Error(data.errors?.[0]?.detailed_message || 'Errore foglio');
+        allRows = parseGviz(data.table);
+        renderStats();
+        renderTable();
+        document.getElementById('last-update').textContent = 'Aggiornato: ' + new Date().toLocaleTimeString('it-IT');
+        toast(`${allRows.length} contatti caricati.`, 'success');
+      } catch (e) {
+        showError(e.message);
+        toast('Errore caricamento: ' + e.message, 'error');
+      }
+    }
+
+    function parseGviz(table) {
+      if (!table || !table.rows) return [];
+      return table.rows
+        .filter(row => row.c && row.c.some(c => c && c.v))
+        .map((row, i) => {
+          const get = idx => (row.c && row.c[idx] && row.c[idx].v != null) ? String(row.c[idx].v) : '';
+          return {
+            rowIndex:  i + 2,
+            nome:      get(0),
+            email:     get(1),
+            corsi:     get(2),
+            scaldato:  get(3),
+            sentToday: parseInt(get(4)) || 0,
+            sentTotal: parseInt(get(5)) || 0,
+            categoria: get(catIndex()),
+          };
+        })
+        .filter(r => r.nome || r.email);
+    }
+
+    function getStatus(row) {
+      if (row.sentTotal > 0 || row.sentToday > 0) return 'sent';
+      if (row.scaldato) return 'pending';
+      return 'new';
+    }
+
+    function renderStats() {
+      const total     = allRows.length;
+      const sentToday = allRows.reduce((s, r) => s + r.sentToday, 0);
+      const sentTotal = allRows.filter(r => r.sentTotal > 0 || r.sentToday > 0).length;
+      const pending   = allRows.filter(r => getStatus(r) !== 'sent').length;
+      const pct       = total > 0 ? Math.round(sentTotal / total * 100) : 0;
+      document.getElementById('s-total').textContent   = total;
+      document.getElementById('s-today').textContent   = sentToday;
+      document.getElementById('s-sent').textContent    = sentTotal;
+      document.getElementById('s-pending').textContent = pending;
+      document.getElementById('progress-pct').textContent  = pct + '%';
+      document.getElementById('progress-fill').style.width = pct + '%';
+    }
+
+    function renderTable() {
+      const q       = document.getElementById('search').value.toLowerCase();
+      const statusF = document.getElementById('filter-status').value;
+      const rows = allRows.filter(r => {
+        const matchQ = !q || [r.nome, r.email, r.categoria, r.scaldato].some(v => v.toLowerCase().includes(q));
+        return matchQ && (!statusF || getStatus(r) === statusF);
+      });
+      document.getElementById('row-count').textContent = `${rows.length} di ${allRows.length} contatti`;
+      const tbody = document.getElementById('table-body');
+      if (!rows.length) {
+        tbody.innerHTML = `<tr class="loading-row"><td colspan="8">Nessun contatto trovato.</td></tr>`;
+        return;
+      }
+      const badges = {
+        sent:    '<span class="badge badge-sent">✅ Inviata</span>',
+        pending: '<span class="badge badge-pending">🕐 In attesa</span>',
+        new:     '<span class="badge badge-new">🔵 Da contattare</span>',
+      };
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td class="muted">${r.rowIndex}</td>
+          <td><strong>${esc(r.nome)}</strong></td>
+          <td class="muted">${esc(r.email)}</td>
+          <td>${esc(r.scaldato) || '<span style="color:var(--text-3);font-size:12px;">—</span>'}</td>
+          <td>${r.categoria ? `<span style="background:var(--green-faint);color:var(--green);padding:3px 8px;border-radius:4px;font-size:12px;font-weight:600;">${esc(r.categoria)}</span>` : '—'}</td>
+          <td>${badges[getStatus(r)]}</td>
+          <td>${r.sentToday > 0 ? `<span class="send-count"><span class="dot"></span>${r.sentToday}</span>` : '—'}</td>
+          <td class="muted">${r.sentTotal || '—'}</td>
+        </tr>`).join('');
+    }
+
+    function triggerCampaign() {
+      if (!cfg.webhook) { toast('Imposta il Webhook URL nelle impostazioni.', 'error'); return; }
+      const pending = allRows.filter(r => getStatus(r) !== 'sent').length;
+      const payload = { source: 'robin_hood_dashboard', triggered_at: new Date().toISOString(), pending_contacts: pending };
+      document.getElementById('confirm-text').textContent =
+        `Stai per avviare lo scenario Make.com. Verranno processati ~${pending} contatti non ancora raggiunti.`;
+      document.getElementById('confirm-payload').textContent = JSON.stringify(payload, null, 2);
+      document.getElementById('modal-confirm').classList.remove('hidden');
+      window._pendingPayload = payload;
+    }
+
+    function closeConfirm() { document.getElementById('modal-confirm').classList.add('hidden'); }
+
+    async function confirmTrigger() {
+      const btn = document.getElementById('btn-confirm-send');
+      btn.disabled = true;
+      btn.textContent = 'Invio in corso...';
+      const headers = { 'Content-Type': 'application/json' };
+      if (cfg.apiKey) headers['x-make-apikey'] = cfg.apiKey;
+      try {
+        const res = await fetch(cfg.webhook, {
+          method: 'POST', headers, body: JSON.stringify(window._pendingPayload), mode: 'cors',
+        });
+        if (!res.ok) {
+          const body = await res.text().catch(() => '');
+          throw new Error(`HTTP ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);
+        }
+        closeConfirm();
+        toast('✅ Scenario Make.com avviato con successo!', 'success');
+      } catch (e) {
+        const isCors = e.message.toLowerCase().includes('failed to fetch') || e.message.includes('NetworkError');
+        toast(isCors ? '⚠️ Errore di rete. Controlla che lo scenario Make.com sia attivo.' : 'Errore webhook: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Conferma e avvia';
+      }
+    }
+
+    function showLoading() {
+      document.getElementById('table-body').innerHTML =
+        `<tr class="loading-row"><td colspan="8"><span class="spinner"></span> Caricamento dati...</td></tr>`;
+    }
+    function showError(msg) {
+      document.getElementById('table-body').innerHTML =
+        `<tr class="loading-row"><td colspan="8" style="color:var(--red);">❌ Errore: ${esc(msg)}<br><small style="color:var(--text-3);">Assicurati che il foglio sia condiviso come "Chiunque con il link può visualizzare".</small></td></tr>`;
+    }
+    function esc(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    let _toastTimer;
+    function toast(msg, type = 'info') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = `show ${type}`;
+      clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => el.className = '', 3500);
+    }
+
+    checkConfigBanner();
+    if (cfg.sheetId) loadData();
+  </script>
+</body>
+</html>
