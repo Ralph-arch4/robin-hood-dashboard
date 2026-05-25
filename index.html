@@ -256,6 +256,44 @@
     }
     .last-update { font-size: 12px; color: var(--text-3); }
 
+    /* ── LIVE BANNER ──────────────────────────────────────── */
+    #live-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #ebfaf3;
+      border: 1px solid #085e3a;
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: var(--green-dark);
+    }
+    #live-banner.hidden { display: none; }
+    .live-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: .4; transform: scale(.7); }
+    }
+    .live-stop {
+      margin-left: auto;
+      background: none;
+      border: 1.5px solid var(--green);
+      border-radius: 6px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      cursor: pointer;
+    }
+    .live-stop:hover { background: var(--green-faint); }
+
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -358,6 +396,13 @@
       <button class="btn btn-outline" style="margin-left:auto;padding:5px 14px;font-size:13px;" onclick="openSettings()">
         Configura ora
       </button>
+    </div>
+
+    <div id="live-banner" class="hidden">
+      <span class="live-dot"></span>
+      <span id="live-text">Campagna in corso — aggiornamento automatico ogni <strong id="live-interval">20</strong>s</span>
+      <span id="live-counter" style="margin-left:8px;font-weight:700;color:var(--green);"></span>
+      <button class="live-stop" onclick="stopPolling()">⏹ Ferma</button>
     </div>
 
     <div class="stats-row">
@@ -670,7 +715,8 @@
           throw new Error(`HTTP ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);
         }
         closeConfirm();
-        toast('✅ Scenario Make.com avviato con successo!', 'success');
+        toast('✅ Scenario Make.com avviato — aggiornamento automatico attivo.', 'success');
+        startPolling(20); // refresh every 20s to match Make.com sleep delay
       } catch (e) {
         const isCors = e.message.toLowerCase().includes('failed to fetch') || e.message.includes('NetworkError');
         toast(isCors ? '⚠️ Errore di rete. Controlla che lo scenario Make.com sia attivo.' : 'Errore webhook: ' + e.message, 'error');
@@ -698,6 +744,53 @@
       el.className = `show ${type}`;
       clearTimeout(_toastTimer);
       _toastTimer = setTimeout(() => el.className = '', 3500);
+    }
+
+    // ── POLLING ────────────────────────────────────────────────────
+    let _pollInterval = null;
+    let _pollSeconds  = 20;
+    let _pollCountdown = 0;
+    let _countdownTimer = null;
+
+    function startPolling(intervalSeconds = 20) {
+      _pollSeconds = intervalSeconds;
+      stopPolling(); // clear any existing
+
+      document.getElementById('live-banner').classList.remove('hidden');
+      document.getElementById('live-interval').textContent = intervalSeconds;
+
+      // Immediate first refresh
+      loadData();
+
+      // Countdown ticker (updates every second)
+      _pollCountdown = intervalSeconds;
+      _countdownTimer = setInterval(() => {
+        _pollCountdown--;
+        document.getElementById('live-counter').textContent =
+          `Prossimo aggiornamento: ${_pollCountdown}s`;
+        if (_pollCountdown <= 0) _pollCountdown = intervalSeconds;
+      }, 1000);
+
+      // Actual data refresh
+      _pollInterval = setInterval(() => {
+        _pollCountdown = intervalSeconds;
+        loadData().then(() => {
+          // Auto-stop when all contacts are sent
+          const pending = allRows.filter(r => getStatus(r) !== 'sent').length;
+          if (pending === 0 && allRows.length > 0) {
+            stopPolling();
+            toast('✅ Campagna completata — tutti i contatti raggiunti!', 'success');
+          }
+        });
+      }, intervalSeconds * 1000);
+    }
+
+    function stopPolling() {
+      clearInterval(_pollInterval);
+      clearInterval(_countdownTimer);
+      _pollInterval = null;
+      _countdownTimer = null;
+      document.getElementById('live-banner').classList.add('hidden');
     }
 
     checkConfigBanner();
