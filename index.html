@@ -707,19 +707,16 @@
       const headers = { 'Content-Type': 'application/json' };
       if (cfg.apiKey) headers['x-make-apikey'] = cfg.apiKey;
       try {
-        const res = await fetch(cfg.webhook, {
-          method: 'POST', headers, body: JSON.stringify(window._pendingPayload), mode: 'cors',
+        // no-cors: Make.com webhooks don't return CORS headers, so cors mode causes
+        // preflight rejection. no-cors sends the POST successfully (opaque response).
+        await fetch(cfg.webhook, {
+          method: 'POST', headers, body: JSON.stringify(window._pendingPayload), mode: 'no-cors',
         });
-        if (!res.ok) {
-          const body = await res.text().catch(() => '');
-          throw new Error(`HTTP ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);
-        }
         closeConfirm();
         toast('✅ Scenario Make.com avviato — aggiornamento automatico attivo.', 'success');
-        startPolling(20); // refresh every 20s to match Make.com sleep delay
+        startPolling(20);
       } catch (e) {
-        const isCors = e.message.toLowerCase().includes('failed to fetch') || e.message.includes('NetworkError');
-        toast(isCors ? '⚠️ Errore di rete. Controlla che lo scenario Make.com sia attivo.' : 'Errore webhook: ' + e.message, 'error');
+        toast('⚠️ Errore di rete. Controlla che lo scenario Make.com sia attivo e il webhook URL sia corretto.', 'error');
       } finally {
         btn.disabled = false;
         btn.textContent = 'Conferma e avvia';
